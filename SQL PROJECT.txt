@@ -1,0 +1,90 @@
+-- use vita;
+-- DROP FUNCTION amount_in_words;
+
+DELIMITER $$
+
+/*Creating function*/
+CREATE FUNCTION amount_in_words(amt BIGINT)
+RETURNS VARCHAR(100)
+DETERMINISTIC
+BEGIN
+
+/*Declairing variables*/
+DECLARE num, final_num, tenth_num, hundred_num, thousand_num, lakh_num, crore_num, tendoub_num, hundunit_num, 
+thoudoub_num, lakhdoub_num, crodoub_num, a VARCHAR(100);
+
+/*Checking if amount is greater than 9 digits*/
+IF (LENGTH(amt)>9) THEN
+RETURN 'Amount is too large';
+END IF;
+
+/*Checking if number is negative*/
+IF (amt<0) THEN
+RETURN 'Invalid amount';
+END IF;
+
+/*Checking if number is zero*/  
+IF (amt=0) THEN		
+RETURN 'Zero';
+END IF;
+ 
+/*Reversing the number*/
+SET num = REVERSE(amt);
+
+/*Condition to add 'and'*/
+IF(LENGTH(num)>2) THEN
+SET a = 'and ';
+ELSE
+SET a = '';
+END IF;
+
+/*For tens and units place*/
+SET tenth_num = SUBSTRING(num, 1, 2); 
+IF(tenth_num=0) THEN
+SET tenth_num = '';
+ELSE
+SELECT value INTO tendoub_num FROM alpha WHERE id = CONCAT(SUBSTRING(num, 2, 1),SUBSTRING(num, 1, 1) );
+SET tenth_num = CONCAT(a,tendoub_num);
+END IF; 
+
+/*For hundreads place*/
+SET hundred_num = SUBSTRING(num, 3, 1);  
+IF(hundred_num=0) THEN
+SET hundred_num = '';
+ELSE  
+SELECT value INTO hundunit_num FROM alpha WHERE id = SUBSTRING(num, 3, 1);
+SET hundred_num = CONCAT(hundunit_num ,' hundred ');
+END IF;
+    
+/*For thousands place*/  
+SET thousand_num = SUBSTRING(num, 4, 2);
+IF(thousand_num=0) THEN
+SET thousand_num = '';
+ELSE 
+SELECT value INTO thoudoub_num FROM alpha WHERE id = CONCAT(SUBSTRING(num, 5, 1),SUBSTRING(num, 4, 1) );
+SET thousand_num = CONCAT(thoudoub_num, ' thousand ');
+END IF;
+
+/*For lakhs place*/
+SET lakh_num = SUBSTRING(num, 6, 2);
+IF(lakh_num=0) THEN
+SET lakh_num = '';
+ELSE
+SELECT value INTO lakhdoub_num FROM alpha WHERE id = CONCAT(SUBSTRING(num, 7, 1),SUBSTRING(num, 6, 1));
+SET lakh_num = CONCAT(lakhdoub_num, ' lakh ');
+END IF;
+
+/*For crores place*/
+SET crore_num = SUBSTRING(num, 8, 2);
+IF(crore_num=0) THEN
+SET crore_num = '';
+ELSE
+SELECT value INTO crodoub_num FROM alpha WHERE id = CONCAT(SUBSTRING(num, 9, 1),SUBSTRING(num, 8, 1));
+SET crore_num = CONCAT(crodoub_num, ' crore ');
+END IF;
+ 
+/*Final amount*/
+SET final_num = CONCAT( crore_num, lakh_num, thousand_num, hundred_num, tenth_num);
+RETURN final_num;
+END; 
+$$
